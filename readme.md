@@ -229,7 +229,7 @@ Best epoch: 4 (selected via dev loss)
 Μετά τη διαδικασία inference σε batches των 32 δειγμάτων, υπολογίστηκαν τα κλασικά metrics:
 precision, recall, f1-score και accuracy.
 
-(Εδώ θα βάλεις το classification_report που έβγαλε το evaluate.)
+
           precision    recall  f1-score   support
 
   === TEST SET RESULTS ===
@@ -248,17 +248,6 @@ weighted avg     0.8729    0.8727    0.8727     25000
 Το GRU μοντέλο κατάφερε να μάθει αποτελεσματικά τις δομές των κειμένων και να αναγνωρίσει το συναίσθημα των κριτικών IMDB.
 Η χρήση προεκπαιδευμένων GloVe embeddings βοήθησε σημαντικά, καθώς ενίσχυσε την αντιστοίχιση λέξεων με παρόμοιες σημασίες.
 
-Πιθανές βελτιώσεις:
-
-Αύξηση του embedding dimension
-
-Χρήση LSTM ή Transformer αρχιτεκτονικής
-
-Regularization με μεγαλύτερο dropout
-
-Fine-tuning των embeddings
-
-Περισσότερα epochs
 
 Συνολικά, το μοντέλο παρουσίασε ικανοποιητική ακρίβεια και γενικά καλή απόδοση στη ταξινόμηση συναισθήματος.
 
@@ -300,4 +289,5 @@ Training complete.
 
     accuracy                         0.9173     10000
    macro avg     0.9169    0.9173    0.9170     10000
+
 weighted avg     0.9169    0.9173    0.9170     10000
