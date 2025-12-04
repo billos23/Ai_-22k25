@@ -210,25 +210,16 @@ Linear → ReLU → Dropout → Linear → Softmax
 
 4. Εκπαίδευση
 
-Παράμετροι εκπαίδευσης:
+Hyperparameters used:
 
-Adam optimizer, learning rate = 0.001
-
-CrossEntropy Loss
-
-Batch size = 32
-
-Epochs = 6
-
-Χωρισμός train/dev σε 80% / 20%
-
-Αποθήκευση του καλύτερου μοντέλου με βάση το dev loss
-
-Εκπαίδευση σε GPU (GTX 1060 Max-Q)
-
-Κατά την εκπαίδευση καταγράφηκαν train και dev losses, και δημιουργήθηκε διάγραμμα εκπαίδευσης (rnn_loss_train.png).
-
-Παρατηρήθηκε σταθερή μείωση του train loss και καλή συμπεριφορά του dev loss, χωρίς ισχυρή ένδειξη overfitting.
+GRU layers: 1 (bidirectional)
+Hidden size: 128
+Embedding: GloVe 6B 100d (frozen)
+Dropout: 0.3
+Optimizer: Adam (lr=0.001)
+Batch size: 128
+Max sequence length: 200
+Best epoch: 4 (selected via dev loss)
 
 5. Αξιολόγηση & Αποτελέσματα
 
@@ -237,17 +228,20 @@ Epochs = 6
 
 Μετά τη διαδικασία inference σε batches των 32 δειγμάτων, υπολογίστηκαν τα κλασικά metrics:
 precision, recall, f1-score και accuracy.
-Απο κάτω υπάρχει ενα report στο οποίο δεν δίαβαζε το μοντέλο τα positive,αλλά μόνο το negative
 
 (Εδώ θα βάλεις το classification_report που έβγαλε το evaluate.)
           precision    recall  f1-score   support
 
-         neg     0.5000    1.0000    0.6667     12500
-         pos     0.0000    0.0000    0.0000     12500
+  === TEST SET RESULTS ===
 
-    accuracy                         0.5000     25000
-   macro avg     0.2500    0.5000    0.3333     25000
-weighted avg     0.2500    0.5000    0.3333     25000
+              precision    recall  f1-score   support
+
+         neg     0.8816    0.8610    0.8712     12500
+         pos     0.8642    0.8844    0.8742     12500
+
+    accuracy                         0.8727     25000
+   macro avg     0.8729    0.8727    0.8727     25000
+weighted avg     0.8729    0.8727    0.8727     25000
 
 6. Συμπεράσματα
 
@@ -267,3 +261,43 @@ Fine-tuning των embeddings
 Περισσότερα epochs
 
 Συνολικά, το μοντέλο παρουσίασε ικανοποιητική ακρίβεια και γενικά καλή απόδοση στη ταξινόμηση συναισθήματος.
+
+
+Μερος Γ
+Epoch 1/10 | Train Loss: 0.4707 | Dev Loss: 0.2759 | Dev Acc: 0.8973
+  -> Saved best model
+Epoch 2/10 | Train Loss: 0.2706 | Dev Loss: 0.2558 | Dev Acc: 0.9061
+  -> Saved best model
+Epoch 3/10 | Train Loss: 0.2247 | Dev Loss: 0.2318 | Dev Acc: 0.9156
+  -> Saved best model
+Epoch 4/10 | Train Loss: 0.1925 | Dev Loss: 0.2310 | Dev Acc: 0.9146
+  -> Saved best model
+Epoch 5/10 | Train Loss: 0.1692 | Dev Loss: 0.2340 | Dev Acc: 0.9162
+Epoch 6/10 | Train Loss: 0.1500 | Dev Loss: 0.2245 | Dev Acc: 0.9221
+  -> Saved best model
+Epoch 7/10 | Train Loss: 0.1311 | Dev Loss: 0.2472 | Dev Acc: 0.9173
+Epoch 8/10 | Train Loss: 0.1157 | Dev Loss: 0.2289 | Dev Acc: 0.9231
+Epoch 9/10 | Train Loss: 0.1021 | Dev Loss: 0.2545 | Dev Acc: 0.9223
+Epoch 10/10 | Train Loss: 0.0919 | Dev Loss: 0.2735 | Dev Acc: 0.9159
+Saved cnn_loss_train.png
+Training complete.
+
+
+=== TEST SET RESULTS ===
+
+              precision    recall  f1-score   support
+
+ T-shirt/top     0.8537    0.8810    0.8671      1000
+     Trouser     0.9940    0.9890    0.9915      1000
+    Pullover     0.8691    0.8900    0.8794      1000
+       Dress     0.9127    0.9100    0.9114      1000
+        Coat     0.8705    0.8470    0.8586      1000
+      Sandal     0.9820    0.9820    0.9820      1000
+       Shirt     0.7796    0.7500    0.7645      1000
+     Sneaker     0.9677    0.9600    0.9639      1000
+         Bag     0.9754    0.9930    0.9841      1000
+  Ankle boot     0.9643    0.9710    0.9676      1000
+
+    accuracy                         0.9173     10000
+   macro avg     0.9169    0.9173    0.9170     10000
+weighted avg     0.9169    0.9173    0.9170     10000

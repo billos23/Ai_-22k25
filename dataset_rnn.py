@@ -1,3 +1,4 @@
+# Paste your dataset_rnn.py code here
 # dataset_rnn.py
 import torch
 from torchtext.datasets import IMDB
@@ -39,24 +40,38 @@ def load_imdb_splits():
 
     for label, text in train_iter:
         train_texts.append(text)
-        train_labels.append(1 if label == "pos" else 0)
+        # torchtext IMDB returns label as int: 1=neg, 2=pos
+        # Convert to: 0=neg, 1=pos
+        if isinstance(label, int):
+            train_labels.append(label - 1)  # 1->0 (neg), 2->1 (pos)
+        else:
+            train_labels.append(1 if label == "pos" else 0)
 
     for label, text in test_iter:
         test_texts.append(text)
-        test_labels.append(1 if label == "pos" else 0)
+        if isinstance(label, int):
+            test_labels.append(label - 1)
+        else:
+            test_labels.append(1 if label == "pos" else 0)
 
+    # Debug: print first few labels
+    print(f"Sample labels (first 5): {train_labels[:5]}")
+    
     return train_texts, train_labels, test_texts, test_labels
+
+
+MAX_SEQ_LEN = 200  # Truncate long reviews for speed
 
 
 def prepare_datasets():
     train_texts, train_labels, test_texts, test_labels = load_imdb_splits()
 
-    tokenized_train = [tokenize(t) for t in train_texts]
+    tokenized_train = [tokenize(t)[:MAX_SEQ_LEN] for t in train_texts]  # Truncate
 
     vocab = build_vocab(tokenized_train, min_freq=2)
 
     X_train = [numericalize(tokens, vocab) for tokens in tokenized_train]
-    X_test  = [numericalize(tokenize(t), vocab) for t in test_texts]
+    X_test  = [numericalize(tokenize(t)[:MAX_SEQ_LEN], vocab) for t in test_texts]
 
     y_train = torch.tensor(train_labels, dtype=torch.long)
     y_test  = torch.tensor(test_labels, dtype=torch.long)
@@ -66,5 +81,16 @@ def prepare_datasets():
 
 def collate_fn(batch):
     sequences, labels = zip(*batch)
-    sequences = pad_sequence(sequences, batch_first=True, padding_value=0)
-    return sequences, torch.tensor(labels)
+    # Handle both tensor and int labels
+    if isinstance(sequences[0], torch.Tensor):
+        sequences = pad_sequence(sequences, batch_first=True, padding_value=0)
+    else:
+        sequences = pad_sequence([torch.tensor(s) for s in sequences], batch_first=True, padding_value=0)
+    
+    # Convert labels to tensor properly
+    if isinstance(labels[0], torch.Tensor):
+        labels = torch.stack([l if l.dim() == 0 else l.squeeze() for l in labels])
+    else:
+        labels = torch.tensor(labels, dtype=torch.long)
+    
+    return sequences, labels

@@ -1,3 +1,4 @@
+# Paste your rnn_model.py code here
 # rnn_model.py
 import torch
 import torch.nn as nn
@@ -12,13 +13,14 @@ class GRUClassifier(nn.Module):
         self.embedding.weight.data.copy_(torch.tensor(pretrained_embeddings))
         self.embedding.weight.requires_grad = not freeze_embeddings
 
+        # Note: dropout only applies between layers, so set to 0 if num_layers=1
         self.gru = nn.GRU(
             embed_dim,
             hidden_size,
             num_layers=num_layers,
             batch_first=True,
             bidirectional=True,
-            dropout=dropout
+            dropout=dropout if num_layers > 1 else 0
         )
 
         self.classifier = nn.Sequential(
