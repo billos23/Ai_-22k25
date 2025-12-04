@@ -1,4 +1,6 @@
 # train_rnn.py
+import joblib
+import numpy as np
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset, random_split
@@ -20,8 +22,13 @@ embeddings = load_glove_embeddings(
     vocab,
     embedding_dim=100
 )
+np.save("trained_embeddings.npy", embeddings)
+print("Saved trained_embeddings.npy")
 
 vocab_size = len(vocab)
+np.save("embedding_matrix.npy", embeddings)
+joblib.dump(vocab, "vocab.pkl")
+print("Saved vocab.pkl and embedding_matrix.npy")
 
 train_dataset = list(zip(X_train, y_train))
 

@@ -1,20 +1,24 @@
 import torch
-import torch.nn as nn
-import joblib
-from preprocess import tokenize
-from rnn_model import GRUClassifier
-from sklearn.metrics import classification_report
+from torchtext.datasets import IMDB
 import numpy as np
+import joblib
+from torch.utils.data import DataLoader, TensorDataset
+from sklearn.metrics import classification_report
+
+from dataset_rnn import tokenize, numericalize
+from rnn_model import GRUClassifier
+
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 #########################################################
-# Load test set
+# Load local IMDB dataset
 #########################################################
 
+import os
+
 def load_test_set():
-    from torchtext.datasets import IMDB
     texts = []
     labels = []
     for label, text in IMDB(split="test"):
@@ -24,67 +28,85 @@ def load_test_set():
 
 
 #########################################################
-# Convert texts to padded tensors
+# Load vocab + embeddings + model
 #########################################################
 
-def encode_texts(texts, word2idx, max_len=300):
-    encoded = []
-    for t in texts:
-        tokens = tokenize(t)
-        idxs = [word2idx.get(tok, 1) for tok in tokens]   # 1 = <unk>
-        idxs = idxs[:max_len]
-        if len(idxs) < max_len:
-            idxs += [0] * (max_len - len(idxs))          # 0 = <pad>
-        encoded.append(torch.tensor(idxs))
-    return torch.stack(encoded)
-
-
-#########################################################
-# Load model + vocab
-#########################################################
-
-print("Loading vocab and model...")
-
+print("Loading vocab...")
 vocab = joblib.load("vocab.pkl")
-word2idx = vocab["word2idx"]
+word2idx = vocab
+vocab_size = len(vocab)
 
-embedding_matrix = np.load("embedding_matrix.npy")
-embedding_tensor = torch.tensor(embedding_matrix)
+print("Loading embeddings...")
+embedding_matrix = np.load("trained_embeddings.npy")
+embed_dim = embedding_matrix.shape[1]
 
+print("Building model...")
 model = GRUClassifier(
-    vocab_size=embedding_matrix.shape[0],
-    embed_dim=embedding_matrix.shape[1],
+    vocab_size=vocab_size,
+    embed_dim=embed_dim,
     hidden_size=128,
     num_layers=2,
-    pretrained_embeddings=embedding_matrix
+    pretrained_embeddings=embedding_matrix,
+    freeze_embeddings=False,
+    dropout=0.3
 ).to(DEVICE)
 
-model.load_state_dict(torch.load("best_rnn_model.pt", map_location=DEVICE))
+print("Loading weights...")
+state = torch.load("best_rnn_model.pt", map_location=DEVICE)
+model.load_state_dict(state)
 model.eval()
 
 
 #########################################################
-# Encode test data
+# Encode test data using SAME pipeline as training
 #########################################################
 
+print("Tokenizing...")
+
 texts, labels = load_test_set()
-inputs = encode_texts(texts, word2idx).to(DEVICE)
+
+encoded = []
+for t in texts:
+    tokens = tokenize(t)[:300]
+    ids = numericalize(tokens, word2idx)
+    encoded.append(ids)
+
+# pad manually
+max_len = max(len(x) for x in encoded)
+padded = torch.zeros(len(encoded), max_len, dtype=torch.long)
+for i, seq in enumerate(encoded):
+    padded[i, :len(seq)] = seq
+
+dataset = TensorDataset(padded, labels)
+loader = DataLoader(dataset, batch_size=32, shuffle=False)
 
 
 #########################################################
 # Predict
 #########################################################
 
-with torch.no_grad():
-    outputs = model(inputs)
-    preds = torch.argmax(outputs, dim=1).cpu().numpy()
+all_preds = []
 
+with torch.no_grad():
+    for batch_x, _ in loader:
+        batch_x = batch_x.to(DEVICE)
+        out = model(batch_x)
+        preds = torch.argmax(out, dim=1).cpu().numpy()
+        all_preds.extend(preds)
+
+preds = np.array(all_preds)
 labels = labels.numpy()
 
 
 #########################################################
-# Print report
+# Metrics
 #########################################################
 
 print("\n=== TEST SET RESULTS ===\n")
-print(classification_report(labels, preds, target_names=["neg", "pos"], digits=4))
+print(classification_report(
+    labels,
+    preds,
+    labels=[0, 1],
+    target_names=["neg", "pos"],
+    digits=4
+))
