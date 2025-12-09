@@ -1,5 +1,3 @@
-# Paste your dataset_rnn.py code here
-# dataset_rnn.py
 import torch
 from torchtext.datasets import IMDB
 from torch.nn.utils.rnn import pad_sequence
@@ -54,13 +52,13 @@ def load_imdb_splits():
         else:
             test_labels.append(1 if label == "pos" else 0)
 
-    # Debug: print first few labels
+    
     print(f"Sample labels (first 5): {train_labels[:5]}")
     
     return train_texts, train_labels, test_texts, test_labels
 
 
-MAX_SEQ_LEN = 200  # Truncate long reviews for speed
+MAX_SEQ_LEN = 200  
 
 
 def prepare_datasets():
@@ -81,13 +79,13 @@ def prepare_datasets():
 
 def collate_fn(batch):
     sequences, labels = zip(*batch)
-    # Handle both tensor and int labels
+    
     if isinstance(sequences[0], torch.Tensor):
         sequences = pad_sequence(sequences, batch_first=True, padding_value=0)
     else:
         sequences = pad_sequence([torch.tensor(s) for s in sequences], batch_first=True, padding_value=0)
     
-    # Convert labels to tensor properly
+   
     if isinstance(labels[0], torch.Tensor):
         labels = torch.stack([l if l.dim() == 0 else l.squeeze() for l in labels])
     else:

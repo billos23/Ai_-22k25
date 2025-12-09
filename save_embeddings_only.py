@@ -1,4 +1,3 @@
-# save_embeddings_only.py
 import numpy as np
 import joblib
 from glove_loader import load_glove_embeddings

@@ -2,24 +2,14 @@ from preprocess import load_dataset, tokenize, vectorize
 import joblib
 from sklearn.metrics import precision_recall_fscore_support
 
-###########################################################
-# LOAD TEST SET
-###########################################################
 texts, labels = load_dataset("test")
 token_lists = [tokenize(t) for t in texts]
 
-###########################################################
-# LOAD SAVED MODELS + VOCAB
-###########################################################
 vocab = joblib.load("vocab.pkl")
 models = joblib.load("models.pkl")
 
 X_test = vectorize(token_lists, vocab)
 
-
-###########################################################
-# EVALUATE ALL MODELS
-###########################################################
 for name, model in models.items():
     preds = model.predict(X_test)
 

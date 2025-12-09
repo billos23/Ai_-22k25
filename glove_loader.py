@@ -1,4 +1,3 @@
-# glove_loader.py
 import numpy as np
 
 def load_glove_embeddings(path, vocab, embedding_dim=100):

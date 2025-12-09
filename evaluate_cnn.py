@@ -17,7 +17,7 @@ CLASS_NAMES = [
     "Sandal", "Shirt", "Sneaker", "Bag", "Ankle boot"
 ]
 
-# Test transform (no augmentation)
+
 test_transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.5,), (0.5,))
@@ -29,13 +29,12 @@ test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
 
 print(f"Test set size: {len(test_dataset)}")
 
-# Load model
 print("Loading model...")
 model = FashionCNN(num_classes=10).to(device)
 model.load_state_dict(torch.load("best_cnn_model.pt", map_location=device))
 model.eval()
 
-# Predict
+
 all_preds = []
 all_labels = []
 
@@ -50,7 +49,7 @@ with torch.no_grad():
 preds = np.array(all_preds)
 labels = np.array(all_labels)
 
-# Metrics
+
 print("\n=== TEST SET RESULTS ===\n")
 print(classification_report(
     labels,
@@ -60,6 +59,6 @@ print(classification_report(
     zero_division=0
 ))
 
-# Accuracy
+
 accuracy = (preds == labels).mean()
 print(f"Overall Accuracy: {accuracy:.4f}")

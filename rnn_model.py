@@ -1,5 +1,3 @@
-# Paste your rnn_model.py code here
-# rnn_model.py
 import torch
 import torch.nn as nn
 
@@ -12,8 +10,6 @@ class GRUClassifier(nn.Module):
         self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
         self.embedding.weight.data.copy_(torch.tensor(pretrained_embeddings))
         self.embedding.weight.requires_grad = not freeze_embeddings
-
-        # Note: dropout only applies between layers, so set to 0 if num_layers=1
         self.gru = nn.GRU(
             embed_dim,
             hidden_size,

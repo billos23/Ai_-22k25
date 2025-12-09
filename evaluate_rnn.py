@@ -14,9 +14,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {DEVICE}")
 
 
-#########################################################
-# Load local IMDB dataset
-#########################################################
+
 
 import os
 
@@ -33,9 +31,7 @@ def load_test_set():
     return texts, torch.tensor(labels)
 
 
-#########################################################
-# Load vocab + embeddings + model
-#########################################################
+
 
 print("Loading vocab...")
 vocab = joblib.load("vocab.pkl")
@@ -51,7 +47,7 @@ model = GRUClassifier(
     vocab_size=vocab_size,
     embed_dim=embed_dim,
     hidden_size=128,
-    num_layers=1,  # Must match training config
+    num_layers=1,  
     pretrained_embeddings=embedding_matrix,
     freeze_embeddings=True,
     dropout=0.3
@@ -62,13 +58,11 @@ state = torch.load("best_rnn_model.pt", map_location=DEVICE)
 model.load_state_dict(state)
 model.eval()
 
-# Verify model loaded correctly
+
 print(f"Model vocab size: {vocab_size}, Embedding dim: {embed_dim}")
 
 
-#########################################################
-# Encode test data using SAME pipeline as training
-#########################################################
+
 
 print("Tokenizing...")
 
@@ -80,7 +74,7 @@ for t in texts:
     ids = numericalize(tokens, word2idx)
     encoded.append(ids)
 
-# pad manually
+
 max_len = max(len(x) for x in encoded)
 padded = torch.zeros(len(encoded), max_len, dtype=torch.long)
 for i, seq in enumerate(encoded):
@@ -91,11 +85,6 @@ loader = DataLoader(dataset, batch_size=32, shuffle=False)
 
 print(f"Test set size: {len(dataset)}")
 print(f"Label distribution: 0={sum(labels == 0).item()}, 1={sum(labels == 1).item()}")
-
-
-#########################################################
-# Predict
-#########################################################
 
 all_preds = []
 all_probs = []
@@ -109,23 +98,16 @@ with torch.no_grad():
         all_preds.extend(preds)
         all_probs.extend(probs.cpu().numpy())
 
-# Debug: check prediction distribution
 all_preds_arr = np.array(all_preds)
 print(f"\nPrediction distribution: 0={sum(all_preds_arr == 0)}, 1={sum(all_preds_arr == 1)}")
 
 preds = np.array(all_preds)
 labels_np = labels.numpy()
 
-# Show sample predictions
 print("\nSample predictions (first 10):")
 print(f"True labels:  {labels_np[:10]}")
 print(f"Predictions:  {preds[:10]}")
 print(f"Probabilities: {[f'[{p[0]:.3f}, {p[1]:.3f}]' for p in all_probs[:10]]}")
-
-
-#########################################################
-# Metrics
-#########################################################
 
 print("\n=== TEST SET RESULTS ===\n")
 print(classification_report(

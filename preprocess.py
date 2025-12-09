@@ -3,21 +3,10 @@ import numpy as np
 import re
 from collections import Counter
 
-
-############################################################
-# 1. LOAD DATASET FROM LOCAL FOLDER
-############################################################
 def load_dataset(split):
-    """
-    Loads IMDB data from the local folder:
-    Aiaskisi2/imdb/train/pos, neg
-    Aiaskisi2/imdb/test/pos, neg
-    """
-
-    # Folder where preprocess.py is
+ 
     base_dir = os.path.dirname(os.path.abspath(__file__))
 
-    # Path to imdb/<split>/
     imdb_dir = os.path.join(base_dir, "imdb", split)
 
     pos_dir = os.path.join(imdb_dir, "pos")
@@ -25,15 +14,12 @@ def load_dataset(split):
 
     texts = []
     labels = []
-
-    # Negative reviews (label = 0)
     for fname in os.listdir(neg_dir):
         path = os.path.join(neg_dir, fname)
         with open(path, encoding="utf-8") as f:
             texts.append(f.read())
             labels.append(0)
 
-    # Positive reviews (label = 1)
     for fname in os.listdir(pos_dir):
         path = os.path.join(pos_dir, fname)
         with open(path, encoding="utf-8") as f:
@@ -43,43 +29,26 @@ def load_dataset(split):
     texts = np.array(texts)
     labels = np.array(labels, dtype=np.int32)
 
-    # Shuffle
     idx = np.random.permutation(len(texts))
     return texts[idx], labels[idx]
 
-
-############################################################
-# 2. TOKENIZATION
-############################################################
 def tokenize(text):
     text = text.lower()
     tokens = re.findall(r"[a-zA-Z]+", text)
     return tokens
 
-
-############################################################
-# 3. DOCUMENT FREQUENCY
-############################################################
 def compute_document_frequency(token_lists):
     df = Counter()
     for toks in token_lists:
         df.update(set(toks))
     return df
 
-
-############################################################
-# 4. REMOVE COMMON + RARE TOKENS
-############################################################
 def remove_top_n_and_bottom_k(df, n, k):
     sorted_words = sorted(df.items(), key=lambda x: x[1], reverse=True)
     remove_common = {w for w, _ in sorted_words[:n]}
     remove_rare = {w for w, _ in sorted_words[-k:]}
     return remove_common | remove_rare
 
-
-############################################################
-# 5. FAST INFORMATION GAIN
-############################################################
 def compute_information_gain(df, token_lists, labels):
     IG = {}
     N = len(token_lists)
@@ -96,7 +65,7 @@ def compute_information_gain(df, token_lists, labels):
 
     token_sets = [set(toks) for toks in token_lists]
 
-    # Map word -> docs containing it
+   
     word_docs = {word: [] for word in df.keys()}
     for i, toks in enumerate(token_sets):
         for word in toks:
@@ -111,7 +80,7 @@ def compute_information_gain(df, token_lists, labels):
         pb = b/total if b > 0 else eps
         return -(pa*np.log2(pa) + pb*np.log2(pb))
 
-    # Compute IG for each word
+    
     for word, docs in word_docs.items():
         docs = np.array(docs, dtype=int)
 

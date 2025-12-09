@@ -6,7 +6,7 @@ def get_models():
     models = {
         "BernoulliNB": BernoulliNB(),
 
-        # Faster RandomForest (good performance + speed)
+        #RandomForest
         "RandomForest": RandomForestClassifier(
             n_estimators=200,
             n_jobs=-1,
@@ -14,7 +14,7 @@ def get_models():
             random_state=42
         ),
 
-        # Logistic Regression (best IMDB baseline model)
+        # Logistic Regression
         "LogReg": LogisticRegression(
             max_iter=3000,
             solver="liblinear",
